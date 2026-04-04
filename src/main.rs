@@ -27,14 +27,12 @@ async fn get_data(
     client: reqwest::Client,
     leverancier: Leverancier,
 ) -> Result<PricingData, reqwest::Error> {
-    let leverancier = 2;
-
     let date = Local::now();
     let date_string = date.format("%Y-%m-%d");
 
     let url = format!(
         "https://www.stroomperuur.nl/ajax/tarieven.php?leverancier={}&datum={}&kwartier=1`",
-        leverancier, date_string
+        leverancier as i32, date_string
     );
 
     let resp = client
