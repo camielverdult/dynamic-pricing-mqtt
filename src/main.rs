@@ -1,6 +1,10 @@
 extern crate chrono;
 
 use chrono::Local;
+use reqwest;
+use serde::Deserialize;
+// use std::collections::HashMap;
+use tokio;
 
 fn make_url(leverancier: i32) -> String {
     let date = Local::now();
@@ -11,7 +15,23 @@ fn make_url(leverancier: i32) -> String {
     )
 }
 
-fn main() {
+// async fn get_data() -> json::Result<String> {
+//     reqwest::get("https://www.rust-lang.org")
+//         .await?
+//         .text()
+//         .await?;
+// }
+
+#[derive(Deserialize, Debug)]
+struct PricingData(Vec<f32>, Vec<f32>, f32, f32);
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = reqwest::Client::new();
+
     let url = make_url(2);
-    println!("{}", url);
+
+    let resp = client.get(url).send().await?.json::<PricingData>().await?;
+    println!("{resp:#?}");
+    Ok(())
 }
