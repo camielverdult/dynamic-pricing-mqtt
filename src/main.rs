@@ -1,31 +1,9 @@
 extern crate chrono;
 
-use chrono::Local;
+use chrono::{DateTime, Local};
 use reqwest;
 use serde::Deserialize;
 use tokio;
-
-fn make_url(leverancier: i32) -> String {
-    let date = Local::now();
-    let date_string = date.format("%Y-%m-%d");
-    format!(
-        "https://www.stroomperuur.nl/ajax/tarieven.php?leverancier={}&datum={}&kwartier=1`",
-        leverancier, date_string
-    )
-}
-
-async fn get_data(client: reqwest::Client) -> Result<PricingDataResponse, reqwest::Error> {
-    let url = make_url(2);
-
-    let resp = client
-        .get(url)
-        .send()
-        .await?
-        .json::<PricingDataResponse>()
-        .await?;
-
-    Ok(resp)
-}
 
 #[derive(Deserialize, Debug)]
 struct PricingDataResponse {
@@ -35,12 +13,42 @@ struct PricingDataResponse {
     purchasing_fee: f64,
 }
 
+#[derive(Debug)]
+struct PricingData {
+    date: DateTime<Local>,
+    pricings: PricingDataResponse,
+}
+
+async fn get_data(client: reqwest::Client) -> Result<PricingData, reqwest::Error> {
+    let leverancier = 2;
+
+    let date = Local::now();
+    let date_string = date.format("%Y-%m-%d");
+
+    let url = format!(
+        "https://www.stroomperuur.nl/ajax/tarieven.php?leverancier={}&datum={}&kwartier=1`",
+        leverancier, date_string
+    );
+
+    let resp = client
+        .get(url)
+        .send()
+        .await?
+        .json::<PricingDataResponse>()
+        .await;
+
+    Ok(PricingData {
+        date: date,
+        pricings: resp?,
+    })
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
 
-    let data = get_data(client).await.unwrap();
+    let data = get_data(client).await?;
 
-    println!("{}", data.average_purchase_price);
+    println!("{:#?}", data);
     Ok(())
 }
