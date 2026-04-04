@@ -20,6 +20,28 @@ struct PricingData {
 }
 
 enum Leverancier {
+    Generic = 0,
+    All_in_power = 4,
+    ANWB_Energie = 3,
+    Budget_Energie = 15,
+    Coolblue_Energie = 10,
+    Delta_Energie = 22,
+    easyEnergy = 5,
+    Eneco = 17,
+    Energie_VanOns = 6,
+    Energiedirect = 16,
+    Energiek = 21,
+    EnergyZero = 7,
+    Engie = 23,
+    Essent = 20,
+    Frank_Energie = 8,
+    GroeneStroomLokaal = 9,
+    NextEnergy = 11,
+    Oxxio = 19,
+    Tibber = 1,
+    Vandebron = 14,
+    Vattenfall = 18,
+    Vrijopnaam = 12,
     Zonneplan = 2,
 }
 
