@@ -23,11 +23,11 @@ fn make_url(leverancier: i32) -> String {
 // }
 
 #[derive(Deserialize, Debug)]
-struct PricingData {
-    PurchasePrice: Vec<f64>,
-    Taxes: Vec<f64>,
-    AveragePurchasePrice: f64,
-    PurchasingFee: f64,
+struct PricingDataResponse {
+    purchase_price: Vec<f64>,
+    taxes: Vec<f64>,
+    average_purchase_price: f64,
+    purchasing_fee: f64,
 }
 
 #[tokio::main]
@@ -38,7 +38,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("URL: {url}");
 
-    let resp = client.get(url).send().await?.json::<PricingData>().await?;
+    let resp = client
+        .get(url)
+        .send()
+        .await?
+        .json::<PricingDataResponse>()
+        .await?;
     println!("{resp:#?}");
     Ok(())
 }
