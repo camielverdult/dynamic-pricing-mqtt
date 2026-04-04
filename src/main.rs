@@ -23,7 +23,12 @@ fn make_url(leverancier: i32) -> String {
 // }
 
 #[derive(Deserialize, Debug)]
-struct PricingData(Vec<f32>, Vec<f32>, f32, f32);
+struct PricingData {
+    PurchasePrice: Vec<f64>,
+    Taxes: Vec<f64>,
+    AveragePurchasePrice: f64,
+    PurchasingFee: f64,
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
