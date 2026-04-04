@@ -19,7 +19,14 @@ struct PricingData {
     pricings: PricingDataResponse,
 }
 
-async fn get_data(client: reqwest::Client) -> Result<PricingData, reqwest::Error> {
+enum Leverancier {
+    Zonneplan = 2,
+}
+
+async fn get_data(
+    client: reqwest::Client,
+    leverancier: Leverancier,
+) -> Result<PricingData, reqwest::Error> {
     let leverancier = 2;
 
     let date = Local::now();
@@ -47,7 +54,7 @@ async fn get_data(client: reqwest::Client) -> Result<PricingData, reqwest::Error
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
 
-    let data = get_data(client).await?;
+    let data = get_data(client, Leverancier::Zonneplan).await?;
 
     println!("{:#?}", data);
     Ok(())
