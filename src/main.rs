@@ -10,7 +10,7 @@ fn make_url(leverancier: i32) -> String {
     let date = Local::now();
     let date_string = date.format("%Y-%m-%d");
     format!(
-        "https://www.stroomperuur.nl/ajax/tarieven.php?leverancier={}&datum={}",
+        "https://www.stroomperuur.nl/ajax/tarieven.php?leverancier={}&datum={}&kwartier=1`",
         leverancier, date_string
     )
 }
@@ -30,6 +30,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
 
     let url = make_url(2);
+
+    println!("URL: {url}");
 
     let resp = client.get(url).send().await?.json::<PricingData>().await?;
     println!("{resp:#?}");
