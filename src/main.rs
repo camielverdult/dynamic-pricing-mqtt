@@ -165,7 +165,7 @@ fn get_price_at_time(prices: &PricingDataResponse, time: &DateTime<Tz>) -> Optio
 async fn main() {
     let config = get_config();
 
-    println!("Starting with config: {:?}", config);
+    println!("Starting with config: {:#?}", config);
 
     let req_client = reqwest::Client::new();
 
