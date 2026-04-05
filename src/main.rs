@@ -125,7 +125,7 @@ async fn main() {
 
     let leverancier = Leverancier::Zonneplan;
 
-    let last_data_fetched = chrono::Local::now() - chrono::Duration::days(1);
+    let last_data_fetched = chrono::Local::now();
 
     // initialise data without any value, we will fetch it in the loop
     let mut data = get_data(&req_client, &leverancier).await.unwrap();
