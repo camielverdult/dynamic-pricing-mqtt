@@ -29,4 +29,5 @@ Sleeping 59999 ms
 ```
 
 TODO:
+- [ ] Integration with home assistant (https://www.home-assistant.io/integrations/mqtt/)
 - [ ] Make a docker image for easy deployment
