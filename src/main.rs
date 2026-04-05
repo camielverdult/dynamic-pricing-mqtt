@@ -178,7 +178,6 @@ async fn main() {
 
         let ms = time_until_next.num_milliseconds().abs();
         let sleep_time = Duration::from_millis(ms.try_into().unwrap());
-        // let sleep_time = Duration::from_millis(1000);
 
         println!("Sleeping {} ms", ms);
 
