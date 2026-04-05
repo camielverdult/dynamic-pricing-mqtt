@@ -54,7 +54,7 @@ enum Leverancier {
 #[derive(Debug)]
 struct Config {
     timezone: Tz,
-    host: IpAddr,
+    host: String,
     port: u16,
     username: String,
     password: String,
@@ -96,10 +96,7 @@ fn get_config() -> Config {
 
     Config {
         timezone: tz_str.parse().unwrap_or(chrono_tz::Europe::Amsterdam),
-        host: std::env::var("MQTT_HOST")
-            .unwrap_or_else(|_| "0.0.0.0".to_string())
-            .parse::<IpAddr>()
-            .expect("Invalid MQTT_HOST IP address"),
+        host: std::env::var("MQTT_HOST").unwrap_or_else(|_| "0.0.0.0".to_string()),
         port: std::env::var("MQTT_PORT")
             .unwrap_or_else(|_| 1883.to_string())
             .parse::<u16>()
@@ -170,7 +167,11 @@ async fn main() {
 
     let req_client = reqwest::Client::new();
 
-    let mut mqttoptions = MqttOptions::new("rumqtt-async", "test.mosquitto.org", 1883);
+    let mut mqttoptions = MqttOptions::new("rumqtt-async", config.host.to_string(), config.port);
+
+    if !config.username.is_empty() || !config.password.is_empty() {
+        mqttoptions.set_credentials(config.username, config.password);
+    }
     mqttoptions.set_keep_alive(Duration::from_secs(5));
 
     let (mqtt_client, mut eventloop) = AsyncClient::new(mqttoptions, 10);
@@ -225,7 +226,7 @@ async fn main() {
 
         mqtt_client
             .publish(
-                "energy_price/now",
+                format!("{}/now", config.topic),
                 QoS::AtLeastOnce,
                 false,
                 price_now.to_string(),
