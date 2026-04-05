@@ -1,9 +1,11 @@
 extern crate chrono;
 
 use chrono::{DateTime, Datelike, Local, Timelike};
+use chrono_tz::Tz;
 use reqwest;
 use rumqttc::{AsyncClient, MqttOptions, QoS};
 use serde::Deserialize;
+use std::net::IpAddr;
 use std::time::Duration;
 use tokio;
 use tokio::time;
@@ -22,7 +24,7 @@ struct PricingData {
     pricings: PricingDataResponse,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 enum Leverancier {
     Generic = 0,
     All_in_power = 4,
@@ -49,6 +51,66 @@ enum Leverancier {
     Zonneplan = 2,
 }
 
+#[derive(Debug)]
+struct Config {
+    timezone: Tz,
+    host: IpAddr,
+    port: u16,
+    username: String,
+    password: String,
+    leverancier: Leverancier,
+    topic: String,
+}
+
+fn get_config() -> Config {
+    let tz_str = std::env::var("TIMEZONE").unwrap_or_else(|_| "Europe/Amsterdam".to_string());
+
+    let leverancier_str = std::env::var("LEVERANCIER").unwrap_or_else(|_| "Generic".to_string());
+
+    let leverancier = match leverancier_str.as_str() {
+        "Generic" => Leverancier::Generic,
+        "All_in_power" => Leverancier::All_in_power,
+        "ANWB_Energie" => Leverancier::ANWB_Energie,
+        "BudgetEnergie" => Leverancier::BudgetEnergie,
+        "CoolblueEnergie" => Leverancier::CoolblueEnergie,
+        "DeltaEnergie" => Leverancier::DeltaEnergie,
+        "easyEnergy" => Leverancier::easyEnergy,
+        "Eneco" => Leverancier::Eneco,
+        "EnergieVanOns" => Leverancier::EnergieVanOns,
+        "Energiedirect" => Leverancier::Energiedirect,
+        "Energiek" => Leverancier::Energiek,
+        "EnergyZero" => Leverancier::EnergyZero,
+        "Engie" => Leverancier::Engie,
+        "Essent" => Leverancier::Essent,
+        "FrankEnergie" => Leverancier::FrankEnergie,
+        "GroeneStroomLokaal" => Leverancier::GroeneStroomLokaal,
+        "NextEnergy" => Leverancier::NextEnergy,
+        "Oxxio" => Leverancier::Oxxio,
+        "Tibber" => Leverancier::Tibber,
+        "Vandebron" => Leverancier::Vandebron,
+        "Vattenfall" => Leverancier::Vattenfall,
+        "Vrijopnaam" => Leverancier::Vrijopnaam,
+        "Zonneplan" => Leverancier::Zonneplan,
+        _ => panic!("Invalid LEVERANCIER value: {}", leverancier_str),
+    };
+
+    Config {
+        timezone: tz_str.parse().unwrap_or(chrono_tz::Europe::Amsterdam),
+        host: std::env::var("MQTT_HOST")
+            .unwrap_or_else(|_| "0.0.0.0".to_string())
+            .parse::<IpAddr>()
+            .expect("Invalid MQTT_HOST IP address"),
+        port: std::env::var("MQTT_PORT")
+            .unwrap_or_else(|_| 1883.to_string())
+            .parse::<u16>()
+            .expect("MQTT_PORT must be a valid unsigned 16-bit integer"),
+        username: std::env::var("MQTT_USERNAME").unwrap_or_else(|_| "".to_string()),
+        password: std::env::var("MQTT_PASSWORD").unwrap_or_else(|_| "".to_string()),
+        leverancier: leverancier,
+        topic: std::env::var("MQTT_TOPIC").unwrap_or_else(|_| "dynamic_energy_price".to_string()),
+    }
+}
+
 async fn get_data(
     client: &reqwest::Client,
     leverancier: &Leverancier,
@@ -57,7 +119,7 @@ async fn get_data(
     let date_string = date.format("%Y-%m-%d");
 
     let url = format!(
-        "https://www.stroomperuur.nl/ajax/tarieven.php?leverancier={}&datum={}&kwartier=1`",
+        "https://www.stroomperuur.nl/ajax/tarieven.php?leverancier={}&datum={}&kwartier=1",
         *leverancier as u8, date_string
     );
 
@@ -174,13 +236,15 @@ async fn main() {
             .unwrap()
             .with_nanosecond(0)
             .unwrap();
-        let time_until_next = next_minute - now;
 
-        let ms = time_until_next.num_milliseconds().abs();
-        let sleep_time = Duration::from_millis(ms.try_into().unwrap());
+        // Add a 10ms safety buffer to ensure we completely cross the minute boundary
+        let time_until_next = next_minute - Local::now() + chrono::Duration::milliseconds(10);
 
-        println!("Sleeping {} ms", ms);
-
-        time::sleep(sleep_time).await;
+        let ms = time_until_next.num_milliseconds();
+        if ms > 0 {
+            let sleep_time = Duration::from_millis(ms as u64);
+            println!("Sleeping {} ms", ms);
+            time::sleep(sleep_time).await;
+        }
     }
 }

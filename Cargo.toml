@@ -9,3 +9,4 @@ reqwest = { version = "0.13", features = ["json"] }
 serde = { version = "1.0.228", features = ["derive"] }
 tokio = { version = "1.44.0", features = ["full"] }
 rumqttc = "0.25.1"
+chrono-tz = "0.10.4"
