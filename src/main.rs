@@ -138,22 +138,29 @@ async fn main() {
         let index = index_at_time(now);
 
         while index < 24 * 4 {
-            let price_now = get_price_at_time(&data.pricings, now);
+            let price_now = get_price_at_time(&data.pricings, now).unwrap();
 
-            println!("{}", price_now.unwrap());
+            println!("{}", price_now);
 
-            // mqtt_client
-            //     .publish("hello/rumqtt", QoS::AtLeastOnce, false, vec![i; i as usize])
-            //     .await
-            //     .unwrap();
+            mqtt_client
+                .publish(
+                    "energy_price/now",
+                    QoS::AtLeastOnce,
+                    false,
+                    price_now.to_string(),
+                )
+                .await
+                .unwrap();
 
             let time_at_next_index = time_for_index(index);
             let time_until_next = time_at_next_index - Local::now();
             let ms = time_until_next.num_milliseconds().abs();
+            // let sleep_time = Duration::from_millis(ms.try_into().unwrap());
+            let sleep_time = Duration::from_millis(1000);
 
-            println!("Sleeping {} ms", ms);
+            println!("Sleeping {} ms", sleep_time.as_millis());
 
-            time::sleep(Duration::from_millis(ms.try_into().unwrap())).await;
+            time::sleep(sleep_time).await;
         }
     }
 
