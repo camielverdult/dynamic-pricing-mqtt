@@ -23,6 +23,7 @@ struct PricingData {
     pricings: PricingDataResponse,
 }
 
+#[derive(Clone, Copy)]
 enum Leverancier {
     Generic = 0,
     All_in_power = 4,
@@ -51,14 +52,14 @@ enum Leverancier {
 
 async fn get_data(
     client: &reqwest::Client,
-    leverancier: Leverancier,
+    leverancier: &Leverancier,
 ) -> Result<PricingData, reqwest::Error> {
     let date = Local::now();
     let date_string = date.format("%Y-%m-%d");
 
     let url = format!(
         "https://www.stroomperuur.nl/ajax/tarieven.php?leverancier={}&datum={}&kwartier=1`",
-        leverancier as i32, date_string
+        *leverancier as u8, date_string
     );
 
     let resp = client
@@ -143,23 +144,18 @@ async fn main() {
         }
     });
 
+    let leverancier = Leverancier::Zonneplan;
+
     let last_data_fetched = chrono::Local::now() - chrono::Duration::days(1);
+
     // initialise data without any value, we will fetch it in the loop
-    let mut data: PricingData = PricingData {
-        date: last_data_fetched,
-        pricings: PricingDataResponse {
-            purchase_price: vec![],
-            taxes: vec![],
-            average_purchase_price: 0.0,
-            purchasing_fee: 0.0,
-        },
-    };
+    let mut data = get_data(&req_client, &leverancier).await.unwrap();
 
     loop {
         let now = Local::now();
 
         if last_data_fetched.day() != now.day() {
-            data = get_data(&req_client, Leverancier::Zonneplan).await.unwrap();
+            data = get_data(&req_client, &leverancier).await.unwrap();
         }
 
         let price_now = get_price_at_time(&data.pricings, now).unwrap();
