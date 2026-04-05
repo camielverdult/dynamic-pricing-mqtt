@@ -1,13 +1,12 @@
 extern crate chrono;
 
-use chrono::{Date, DateTime, Datelike, Days, Local, Timelike};
+use chrono::{DateTime, Datelike, Local, Timelike};
 use reqwest;
 use rumqttc::{AsyncClient, MqttOptions, QoS};
 use serde::Deserialize;
-use std::error::Error;
 use std::time::Duration;
 use tokio;
-use tokio::{task, time};
+use tokio::time;
 
 #[derive(Deserialize, Debug)]
 struct PricingDataResponse {
