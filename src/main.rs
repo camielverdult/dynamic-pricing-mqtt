@@ -20,7 +20,7 @@ struct PricingDataResponse {
 
 #[derive(Debug)]
 struct PricingData {
-    date: DateTime<Local>,
+    date: DateTime<Tz>,
     pricings: PricingDataResponse,
 }
 
@@ -113,10 +113,10 @@ fn get_config() -> Config {
 
 async fn get_data(
     client: &reqwest::Client,
+    time: &DateTime<Tz>,
     leverancier: &Leverancier,
 ) -> Result<PricingData, reqwest::Error> {
-    let date = Local::now();
-    let date_string = date.format("%Y-%m-%d");
+    let date_string = time.format("%Y-%m-%d");
 
     let url = format!(
         "https://www.stroomperuur.nl/ajax/tarieven.php?leverancier={}&datum={}&kwartier=1",
@@ -131,12 +131,12 @@ async fn get_data(
         .await;
 
     Ok(PricingData {
-        date: date,
+        date: *time,
         pricings: resp?,
     })
 }
 
-fn index_at_time(time: DateTime<Local>) -> i32 {
+fn index_at_time(time: &DateTime<Tz>) -> i32 {
     let hour = time.hour(); // 0-23
     let minute = time.minute(); // 0-59
 
@@ -148,7 +148,7 @@ fn index_at_time(time: DateTime<Local>) -> i32 {
     index
 }
 
-fn get_price_at_time(prices: &PricingDataResponse, time: DateTime<Local>) -> Option<f32> {
+fn get_price_at_time(prices: &PricingDataResponse, time: &DateTime<Tz>) -> Option<f32> {
     let index = index_at_time(time) as usize;
 
     assert!(prices.purchase_price.len() >= index);
@@ -166,6 +166,8 @@ fn get_price_at_time(prices: &PricingDataResponse, time: DateTime<Local>) -> Opt
 
 #[tokio::main]
 async fn main() {
+    let config = get_config();
+
     let req_client = reqwest::Client::new();
 
     let mut mqttoptions = MqttOptions::new("rumqtt-async", "test.mosquitto.org", 1883);
@@ -185,21 +187,23 @@ async fn main() {
         }
     });
 
-    let leverancier = Leverancier::Zonneplan;
-
-    let last_data_fetched = chrono::Local::now();
+    let last_data_fetched = chrono::Utc::now().with_timezone(&config.timezone);
 
     // initialise data without any value, we will fetch it in the loop
-    let mut data = get_data(&req_client, &leverancier).await.unwrap();
+    let mut data = get_data(&req_client, &last_data_fetched, &config.leverancier)
+        .await
+        .unwrap();
 
     loop {
-        let now = Local::now();
+        let now = chrono::Utc::now().with_timezone(&config.timezone);
 
         if last_data_fetched.day() != now.day() {
-            data = get_data(&req_client, &leverancier).await.unwrap();
+            data = get_data(&req_client, &now, &config.leverancier)
+                .await
+                .unwrap();
         }
 
-        let price_now = get_price_at_time(&data.pricings, now).unwrap();
+        let price_now = get_price_at_time(&data.pricings, &now).unwrap();
 
         // format hour:minute with leading zeros
         let hour = now.hour();
@@ -238,7 +242,8 @@ async fn main() {
             .unwrap();
 
         // Add a 10ms safety buffer to ensure we completely cross the minute boundary
-        let time_until_next = next_minute - Local::now() + chrono::Duration::milliseconds(10);
+        let time_until_next = next_minute - chrono::Utc::now().with_timezone(&config.timezone)
+            + chrono::Duration::milliseconds(10);
 
         let ms = time_until_next.num_milliseconds();
         if ms > 0 {
