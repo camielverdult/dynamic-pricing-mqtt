@@ -1,6 +1,6 @@
 extern crate chrono;
 
-use chrono::{Date, DateTime, Datelike, Local, Timelike};
+use chrono::{Date, DateTime, Datelike, Days, Local, Timelike};
 use reqwest;
 use rumqttc::{AsyncClient, MqttOptions, QoS};
 use serde::Deserialize;
@@ -143,8 +143,17 @@ async fn main() {
         }
     });
 
-    let last_data_fetched = Local::now();
-    let mut data = get_data(&req_client, Leverancier::Zonneplan).await.unwrap();
+    let last_data_fetched = chrono::Local::now() - chrono::Duration::days(1);
+    // initialise data without any value, we will fetch it in the loop
+    let mut data: PricingData = PricingData {
+        date: last_data_fetched,
+        pricings: PricingDataResponse {
+            purchase_price: vec![],
+            taxes: vec![],
+            average_purchase_price: 0.0,
+            purchasing_fee: 0.0,
+        },
+    };
 
     loop {
         let now = Local::now();
@@ -167,11 +176,15 @@ async fn main() {
             .await
             .unwrap();
 
-        let index = index_at_time(now);
-        let next_index = next_index(index);
+        // Calculate time to sleep until minute value is incremented by 1 and seconds are 0
+        let next_minute = now + chrono::Duration::minutes(1);
+        let next_minute = next_minute
+            .with_second(0)
+            .unwrap()
+            .with_nanosecond(0)
+            .unwrap();
+        let time_until_next = next_minute - now;
 
-        let time_at_next_index = time_for_index(next_index);
-        let time_until_next = time_at_next_index - Local::now();
         let ms = time_until_next.num_milliseconds().abs();
         let sleep_time = Duration::from_millis(ms.try_into().unwrap());
         // let sleep_time = Duration::from_millis(1000);
