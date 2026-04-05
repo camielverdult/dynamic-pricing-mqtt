@@ -74,19 +74,19 @@ async fn get_data(
     })
 }
 
-fn index_at_time(time: DateTime<Local>) -> u32 {
+fn index_at_time(time: DateTime<Local>) -> i32 {
     let hour = time.hour(); // 0-23
     let minute = time.minute(); // 0-59
 
     // Integer division by 15 gives us 0, 1, 2, or 3!
     let quarter = minute / 15;
 
-    let index = (hour * 4 + quarter) as u32;
+    let index = (hour * 4 + quarter) as i32;
 
     index
 }
 
-fn time_for_index(i: u32) -> DateTime<Local> {
+fn time_for_index(i: i32) -> DateTime<Local> {
     let hour = (i / 4) as u32;
     let quarter = (i % 4) as u32;
     let minute = quarter * 15;
@@ -118,6 +118,10 @@ fn get_price_at_time(prices: &PricingDataResponse, time: DateTime<Local>) -> Opt
     Some(cent_price)
 }
 
+fn next_index(i: i32) -> i32 {
+    (i + 1) % 95
+}
+
 #[tokio::main]
 async fn main() {
     let req_client = reqwest::Client::new();
@@ -139,38 +143,41 @@ async fn main() {
         }
     });
 
+    let last_data_fetched = Local::now();
+    let mut data = get_data(&req_client, Leverancier::Zonneplan).await.unwrap();
+
     loop {
-        let data = get_data(&req_client, Leverancier::Zonneplan).await.unwrap();
-
         let now = Local::now();
-        let index = index_at_time(now);
 
-        while index < 24 * 4 {
-            let price_now = get_price_at_time(&data.pricings, now).unwrap();
-
-            println!("{}", price_now);
-
-            mqtt_client
-                .publish(
-                    "energy_price/now",
-                    QoS::AtLeastOnce,
-                    false,
-                    price_now.to_string(),
-                )
-                .await
-                .unwrap();
-
-            let time_at_next_index = time_for_index(index);
-            let time_until_next = time_at_next_index - Local::now();
-            let ms = time_until_next.num_milliseconds().abs();
-            // let sleep_time = Duration::from_millis(ms.try_into().unwrap());
-            let sleep_time = Duration::from_millis(1000);
-
-            println!("Sleeping {} ms", sleep_time.as_millis());
-
-            time::sleep(sleep_time).await;
+        if last_data_fetched.day() != now.day() {
+            data = get_data(&req_client, Leverancier::Zonneplan).await.unwrap();
         }
-    }
 
-    // Ok(())
+        let price_now = get_price_at_time(&data.pricings, now).unwrap();
+
+        println!("{}:{} = €{}", now.hour(), now.minute(), price_now);
+
+        mqtt_client
+            .publish(
+                "energy_price/now",
+                QoS::AtLeastOnce,
+                false,
+                price_now.to_string(),
+            )
+            .await
+            .unwrap();
+
+        let index = index_at_time(now);
+        let next_index = next_index(index);
+
+        let time_at_next_index = time_for_index(next_index);
+        let time_until_next = time_at_next_index - Local::now();
+        let ms = time_until_next.num_milliseconds().abs();
+        let sleep_time = Duration::from_millis(ms.try_into().unwrap());
+        // let sleep_time = Duration::from_millis(1000);
+
+        println!("Sleeping {} ms", ms);
+
+        time::sleep(sleep_time).await;
+    }
 }
