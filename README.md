@@ -27,3 +27,6 @@ Sleeping 25310 ms
 17:40 = €0.13069
 Sleeping 59999 ms
 ```
+
+TODO:
+- [ ] Make a docker image for easy deployment
