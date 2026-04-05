@@ -125,11 +125,19 @@ async fn main() {
     let mut mqttoptions = MqttOptions::new("rumqtt-async", "test.mosquitto.org", 1883);
     mqttoptions.set_keep_alive(Duration::from_secs(5));
 
-    let (mqtt_client, mut _eventloop) = AsyncClient::new(mqttoptions, 10);
-    mqtt_client
-        .subscribe("energy_price/now", QoS::AtMostOnce)
-        .await
-        .unwrap();
+    let (mqtt_client, mut eventloop) = AsyncClient::new(mqttoptions, 10);
+
+    // Spawn a background task to constantly poll the event loop
+    tokio::spawn(async move {
+        loop {
+            // This actually drives the connection, sends packets, and receives ACKs
+            if let Err(e) = eventloop.poll().await {
+                println!("MQTT connection error: {:?}", e);
+                // Backoff a bit before retrying the poll on error
+                time::sleep(Duration::from_secs(1)).await;
+            }
+        }
+    });
 
     loop {
         let data = get_data(&req_client, Leverancier::Zonneplan).await.unwrap();
