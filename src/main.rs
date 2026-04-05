@@ -87,22 +87,6 @@ fn index_at_time(time: DateTime<Local>) -> i32 {
     index
 }
 
-fn time_for_index(i: i32) -> DateTime<Local> {
-    let hour = (i / 4) as u32;
-    let quarter = (i % 4) as u32;
-    let minute = quarter * 15;
-
-    Local::now()
-        .with_hour(hour)
-        .unwrap()
-        .with_minute(minute)
-        .unwrap()
-        .with_second(0)
-        .unwrap()
-        .with_nanosecond(0)
-        .unwrap()
-}
-
 fn get_price_at_time(prices: &PricingDataResponse, time: DateTime<Local>) -> Option<f32> {
     let index = index_at_time(time) as usize;
 
@@ -117,10 +101,6 @@ fn get_price_at_time(prices: &PricingDataResponse, time: DateTime<Local>) -> Opt
     let cent_price = inkoop_prijs + inkoop_vergoeding + taxes;
 
     Some(cent_price)
-}
-
-fn next_index(i: i32) -> i32 {
-    (i + 1) % 95
 }
 
 #[tokio::main]
