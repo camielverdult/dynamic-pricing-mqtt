@@ -139,7 +139,23 @@ async fn main() {
 
         let price_now = get_price_at_time(&data.pricings, now).unwrap();
 
-        println!("{}:{} = €{}", now.hour(), now.minute(), price_now);
+        // format hour:minute with leading zeros
+        let hour = now.hour();
+        let minute = now.minute();
+
+        let hour_str = if hour < 10 {
+            format!("0{}", hour)
+        } else {
+            hour.to_string()
+        };
+
+        let minute_str = if minute < 10 {
+            format!("0{}", minute)
+        } else {
+            minute.to_string()
+        };
+
+        println!("{}:{} = €{}", hour_str, minute_str, price_now);
 
         mqtt_client
             .publish(
