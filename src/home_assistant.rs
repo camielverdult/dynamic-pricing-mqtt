@@ -5,47 +5,47 @@ use crate::{config::TOPIC, leverancier::Leverancier};
 
 #[derive(Serialize, Debug)]
 pub struct HaDevice {
-    ids: String,
-    name: String,
-    mf: String,
-    mdl: String,
-    sw: String,
-    sn: String,
-    hw: String,
+    pub ids: String,
+    pub name: String,
+    pub mf: String,
+    pub mdl: String,
+    pub sw: String,
+    pub sn: String,
+    pub hw: String,
 }
 
 #[derive(Serialize, Debug)]
 pub struct HaOrigin {
-    name: String,
-    sw: String,
-    url: String,
+    pub name: String,
+    pub sw: String,
+    pub url: String,
 }
 
 #[derive(Serialize, Debug)]
 pub struct HaComponent {
-    p: String,
-    device_class: String,
-    unit_of_measurement: String,
-    value_template: String,
-    unique_id: String,
+    pub p: String,
+    pub device_class: String,
+    pub unit_of_measurement: String,
+    pub value_template: String,
+    pub unique_id: String,
 }
 
 #[derive(Serialize, Debug)]
 pub struct HaDiscoveryPayload {
-    dev: HaDevice,
-    o: HaOrigin,
-    cmps: HashMap<String, HaComponent>,
-    state_topic: String,
-    qos: u8,
+    pub dev: HaDevice,
+    pub o: HaOrigin,
+    pub cmps: HashMap<String, HaComponent>,
+    pub state_topic: String,
+    pub qos: u8,
 }
 
 #[derive(Serialize, Debug)]
 pub struct HaDiscoveryConfig {
-    topic: String,
-    payload: HaDiscoveryPayload,
+    pub topic: String,
+    pub payload: HaDiscoveryPayload,
 }
 
-pub fn get_ha_device_discovery_payload(leverancier: Leverancier) -> HaDiscoveryPayload {
+pub fn get_ha_device_discovery_payload(leverancier: Leverancier) -> HaDiscoveryConfig {
     // https://www.home-assistant.io/integrations/mqtt/#discovery-topic
     // The discovery topic needs to follow a specific format:
     // <discovery_prefix>/<component>/[<node_id>/]<object_id>/config
@@ -92,5 +92,8 @@ pub fn get_ha_device_discovery_payload(leverancier: Leverancier) -> HaDiscoveryP
         qos: 1,                               // Usually QoS 1 is preferred for discovery
     };
 
-    discovery_payload
+    HaDiscoveryConfig {
+        topic: topic,
+        payload: discovery_payload,
+    }
 }
