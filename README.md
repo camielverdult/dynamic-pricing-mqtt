@@ -61,6 +61,30 @@ Sending payload "{\"price\": 0.064399995}"
 Sleeping 54996 ms
 ```
 
+## Docker
+
+To build the image:
+```sh
+docker build -t dynamic-pricing-mqtt .
+```
+
+To run the image:
+```sh
+docker run -d \
+     --name dynamic-pricing \
+     -e MQTT_HOST="0.0.0.0" \
+     -e LEVERANCIER="Zonneplan" \
+     dynamic-pricing-mqtt
+```
+
+There are several environment variables you can set:
+
+`MQTT_HOST`: "0.0.0.0" by default
+`MQTT_PORT`: 1883 by default
+`MQTT_USERNAME`: empty string ("") by default
+`MQTT_PASSWORD`: empty string ("") by default
+`LEVERANCIER`: "Generic" by default, can be one of the following: `Generic`, `All_in_power`, `ANWB_Energie`, `BudgetEnergie`, `CoolblueEnergie`, `DeltaEnergie`, `easyEnergy`, `Eneco`, `EnergieVanOns`, `Energiedirect`, `Energiek`, `EnergyZero`, `Engie`, `Essent`, `FrankEnergie`, `GroeneStroomLokaal`, `NextEnergy`, `Oxxio`, `Tibber`, `Vandebron`, `Vattenfall`, `Vrijopnaam`, `Zonneplan`
+
 TODO:
 - [x] Integration with home assistant (https://www.home-assistant.io/integrations/mqtt/)
 - [x] Make a docker image for easy deployment
