@@ -110,8 +110,9 @@ async fn main() {
     let discovery_payload = get_ha_device_discovery_payload(&config.leverancier);
     let json_payload = serde_json::to_string(&discovery_payload.payload).unwrap();
 
-    if error_state.load(Ordering::Relaxed) {
-        panic!("Cannot send discovery payload because of MQTT error");
+    while error_state.load(Ordering::Relaxed) {
+        println!("Cannot send discovery payload because of MQTT error");
+        time::sleep(Duration::from_secs(5)).await;
     }
 
     print!("Sending discovery payload:");
@@ -139,8 +140,9 @@ async fn main() {
     let price_topic = format!("{}/now", config::TOPIC);
 
     loop {
-        if error_state.load(Ordering::Relaxed) {
-            panic!("Cannot publish price data because of MQTT error");
+        while error_state.load(Ordering::Relaxed) {
+            println!("Cannot publish price data because of MQTT error");
+            time::sleep(Duration::from_secs(5)).await;
         }
 
         let now = chrono::Utc::now().with_timezone(&config.timezone);
