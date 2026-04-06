@@ -48,9 +48,7 @@ fn index_at_time(time: &DateTime<Tz>) -> i32 {
     // Integer division by 15 gives us 0, 1, 2, or 3!
     let quarter = minute / 15;
 
-    let index = (hour * 4 + quarter) as i32;
-
-    index
+    (hour * 4 + quarter) as i32
 }
 
 fn get_price_at_time(prices: &PricingDataResponse, time: &DateTime<Tz>) -> Option<f32> {
