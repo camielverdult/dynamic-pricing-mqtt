@@ -10,6 +10,9 @@ use std::time::Duration;
 use tokio;
 use tokio::time;
 
+use dynamic_pricing_mqtt::TOPIC;
+use dynamic_pricing_mqtt::leverancier::Leverancier;
+
 #[derive(Deserialize, Debug)]
 struct PricingDataResponse {
     purchase_price: Vec<f32>,
@@ -24,33 +27,6 @@ struct PricingData {
     pricings: PricingDataResponse,
 }
 
-#[derive(Debug, Clone, Copy)]
-enum Leverancier {
-    Generic = 0,
-    All_in_power = 4,
-    ANWB_Energie = 3,
-    BudgetEnergie = 15,
-    CoolblueEnergie = 10,
-    DeltaEnergie = 22,
-    easyEnergy = 5,
-    Eneco = 17,
-    EnergieVanOns = 6,
-    Energiedirect = 16,
-    Energiek = 21,
-    EnergyZero = 7,
-    Engie = 23,
-    Essent = 20,
-    FrankEnergie = 8,
-    GroeneStroomLokaal = 9,
-    NextEnergy = 11,
-    Oxxio = 19,
-    Tibber = 1,
-    Vandebron = 14,
-    Vattenfall = 18,
-    Vrijopnaam = 12,
-    Zonneplan = 2,
-}
-
 #[derive(Debug)]
 struct Config {
     timezone: Tz,
@@ -59,7 +35,6 @@ struct Config {
     username: String,
     password: String,
     leverancier: Leverancier,
-    topic: String,
 }
 
 fn get_config() -> Config {
@@ -104,7 +79,6 @@ fn get_config() -> Config {
         username: std::env::var("MQTT_USERNAME").unwrap_or_else(|_| "".to_string()),
         password: std::env::var("MQTT_PASSWORD").unwrap_or_else(|_| "".to_string()),
         leverancier: leverancier,
-        topic: std::env::var("MQTT_TOPIC").unwrap_or_else(|_| "dynamic_energy_price".to_string()),
     }
 }
 
@@ -228,7 +202,7 @@ async fn main() {
 
         mqtt_client
             .publish(
-                format!("{}/now", config.topic),
+                format!("{}/now", TOPIC),
                 QoS::AtLeastOnce,
                 false,
                 price_now.to_string(),
