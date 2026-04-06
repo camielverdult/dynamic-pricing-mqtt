@@ -33,11 +33,11 @@ async fn get_data(
         .send()
         .await?
         .json::<PricingDataResponse>()
-        .await;
+        .await?;
 
     Ok(PricingData {
         date: *time,
-        pricings: resp?,
+        pricings: resp,
     })
 }
 
