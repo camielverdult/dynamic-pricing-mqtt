@@ -5,13 +5,10 @@ use chrono_tz::Tz;
 use reqwest;
 use rumqttc::{AsyncClient, MqttOptions, QoS};
 use serde::Deserialize;
-use std::net::IpAddr;
 use std::time::Duration;
 use tokio;
 use tokio::time;
 
-use dynamic_pricing_mqtt::TOPIC;
-use dynamic_pricing_mqtt::leverancier::Leverancier;
 
 #[derive(Deserialize, Debug)]
 struct PricingDataResponse {
@@ -26,6 +23,7 @@ struct PricingData {
     date: DateTime<Tz>,
     pricings: PricingDataResponse,
 }
+use dynamic_pricing_mqtt::{Leverancier, TOPIC};
 
 #[derive(Debug)]
 struct Config {

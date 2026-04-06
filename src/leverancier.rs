@@ -1,5 +1,3 @@
-use serde::Serialize;
-
 #[derive(Debug, Clone, Copy)]
 pub enum Leverancier {
     Generic = 0,
