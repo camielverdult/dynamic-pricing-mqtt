@@ -1,12 +1,12 @@
 #[derive(Debug, Clone, Copy)]
 pub enum Leverancier {
     Generic = 0,
-    All_in_power = 4,
-    ANWB_Energie = 3,
+    AllInPower = 4,
+    ANWBEnergie = 3,
     BudgetEnergie = 15,
     CoolblueEnergie = 10,
     DeltaEnergie = 22,
-    easyEnergy = 5,
+    EasyEnergy = 5,
     Eneco = 17,
     EnergieVanOns = 6,
     Energiedirect = 16,

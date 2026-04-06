@@ -21,12 +21,12 @@ pub fn get_config() -> Config {
 
     let leverancier = match leverancier_str.as_str() {
         "Generic" => Leverancier::Generic,
-        "All_in_power" => Leverancier::All_in_power,
-        "ANWB_Energie" => Leverancier::ANWB_Energie,
+        "All_in_power" => Leverancier::AllInPower,
+        "ANWB_Energie" => Leverancier::ANWBEnergie,
         "BudgetEnergie" => Leverancier::BudgetEnergie,
         "CoolblueEnergie" => Leverancier::CoolblueEnergie,
         "DeltaEnergie" => Leverancier::DeltaEnergie,
-        "easyEnergy" => Leverancier::easyEnergy,
+        "easyEnergy" => Leverancier::EasyEnergy,
         "Eneco" => Leverancier::Eneco,
         "EnergieVanOns" => Leverancier::EnergieVanOns,
         "Energiedirect" => Leverancier::Energiedirect,
