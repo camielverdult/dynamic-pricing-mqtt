@@ -129,7 +129,7 @@ async fn main() {
     // Wait after publishing discovery data before continuing with sending prices.
     time::sleep(Duration::from_secs(5)).await;
 
-    let last_data_fetched = chrono::Utc::now().with_timezone(&config.timezone);
+    let mut last_data_fetched = chrono::Utc::now().with_timezone(&config.timezone);
 
     // initialise data without any value, we will fetch it in the loop
     let mut data = get_data(&req_client, &last_data_fetched, &config.leverancier)
@@ -149,6 +149,7 @@ async fn main() {
             data = get_data(&req_client, &now, &config.leverancier)
                 .await
                 .unwrap();
+            last_data_fetched = chrono::Utc::now().with_timezone(&config.timezone);
         }
 
         let price_now = get_price_at_time(&data.pricings, &now).unwrap();
