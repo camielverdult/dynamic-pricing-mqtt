@@ -1,5 +1,3 @@
-extern crate chrono;
-
 use chrono::{DateTime, Datelike, Timelike};
 use chrono_tz::Tz;
 use reqwest;
