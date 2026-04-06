@@ -9,31 +9,11 @@ use std::time::Duration;
 use tokio;
 use tokio::time;
 
-
-#[derive(Deserialize, Debug)]
-struct PricingDataResponse {
-    purchase_price: Vec<f32>,
-    taxes: Vec<f32>,
-    average_purchase_price: f32,
-    purchasing_fee: f32,
-}
-
-#[derive(Debug)]
-struct PricingData {
-    date: DateTime<Tz>,
-    pricings: PricingDataResponse,
-}
-use dynamic_pricing_mqtt::{Leverancier, TOPIC};
-
-#[derive(Debug)]
-struct Config {
-    timezone: Tz,
-    host: String,
-    port: u16,
-    username: String,
-    password: String,
-    leverancier: Leverancier,
-}
+use dynamic_pricing_mqtt::{
+    Leverancier,
+    config::{Config, TOPIC},
+    pricing_data::{PricingData, PricingDataResponse},
+};
 
 fn get_config() -> Config {
     let tz_str = std::env::var("TIMEZONE").unwrap_or_else(|_| "Europe/Amsterdam".to_string());

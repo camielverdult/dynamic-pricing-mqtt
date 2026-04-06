@@ -1,10 +1,10 @@
 use serde::Serialize;
 use std::collections::HashMap;
 
-use crate::leverancier::Leverancier;
+use crate::{config::TOPIC, leverancier::Leverancier};
 
 #[derive(Serialize, Debug)]
-struct HaDevice {
+pub struct HaDevice {
     ids: String,
     name: String,
     mf: String,
@@ -15,14 +15,14 @@ struct HaDevice {
 }
 
 #[derive(Serialize, Debug)]
-struct HaOrigin {
+pub struct HaOrigin {
     name: String,
     sw: String,
     url: String,
 }
 
 #[derive(Serialize, Debug)]
-struct HaComponent {
+pub struct HaComponent {
     p: String,
     device_class: String,
     unit_of_measurement: String,
@@ -31,7 +31,7 @@ struct HaComponent {
 }
 
 #[derive(Serialize, Debug)]
-struct HaDiscoveryPayload {
+pub struct HaDiscoveryPayload {
     dev: HaDevice,
     o: HaOrigin,
     cmps: HashMap<String, HaComponent>,
@@ -40,14 +40,12 @@ struct HaDiscoveryPayload {
 }
 
 #[derive(Serialize, Debug)]
-struct HaDiscoveryConfig {
+pub struct HaDiscoveryConfig {
     topic: String,
     payload: HaDiscoveryPayload,
 }
 
-pub const TOPIC: &'static str = "dynamic_energy_price";
-
-fn get_ha_device_discovery_payload(leverancier: Leverancier) -> HaDiscoveryPayload {
+pub fn get_ha_device_discovery_payload(leverancier: Leverancier) -> HaDiscoveryPayload {
     // https://www.home-assistant.io/integrations/mqtt/#discovery-topic
     // The discovery topic needs to follow a specific format:
     // <discovery_prefix>/<component>/[<node_id>/]<object_id>/config
