@@ -149,7 +149,7 @@ async fn main() {
             data = get_data(&req_client, &now, &config.leverancier)
                 .await
                 .unwrap();
-            last_data_fetched = chrono::Utc::now().with_timezone(&config.timezone);
+            last_data_fetched = now;
         }
 
         let price_now = get_price_at_time(&data.pricings, &now).unwrap();
