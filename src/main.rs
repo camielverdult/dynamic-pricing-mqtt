@@ -131,6 +131,8 @@ async fn main() {
 
         let price_now = get_price_at_time(&data.pricings, &now).unwrap();
 
+        time::sleep(Duration::from_secs(5)).await;
+
         // format hour:minute with leading zeros
         let hour = now.hour();
         let minute = now.minute();
