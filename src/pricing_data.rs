@@ -1,10 +1,6 @@
-use chrono::{DateTime, Datelike, Local, Timelike};
+use chrono::DateTime;
 use chrono_tz::Tz;
-use reqwest;
-use rumqttc::{AsyncClient, MqttOptions, QoS};
 use serde::Deserialize;
-use std::time::Duration;
-use tokio;
 
 #[derive(Deserialize, Debug)]
 pub struct PricingDataResponse {
