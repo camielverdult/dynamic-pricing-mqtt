@@ -111,6 +111,9 @@ async fn main() {
         .await
         .unwrap();
 
+    // Wait after publishing discovery data before continuing with sending prices.
+    time::sleep(Duration::from_secs(5)).await;
+
     let last_data_fetched = chrono::Utc::now().with_timezone(&config.timezone);
 
     // initialise data without any value, we will fetch it in the loop
@@ -130,8 +133,6 @@ async fn main() {
         }
 
         let price_now = get_price_at_time(&data.pricings, &now).unwrap();
-
-        time::sleep(Duration::from_secs(5)).await;
 
         // format hour:minute with leading zeros
         let hour = now.hour();
