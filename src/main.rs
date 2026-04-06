@@ -16,6 +16,8 @@ use dynamic_pricing_mqtt::{
     pricing_data::{PricingData, PricingDataResponse},
 };
 
+const MQTT_SETTLE_DELAY: u64 = 5;
+
 async fn get_data(
     client: &reqwest::Client,
     time: &DateTime<Tz>,
@@ -80,7 +82,7 @@ async fn main() {
     if !config.username.is_empty() || !config.password.is_empty() {
         mqttoptions.set_credentials(config.username, config.password);
     }
-    mqttoptions.set_keep_alive(Duration::from_secs(5));
+    mqttoptions.set_keep_alive(Duration::from_secs(MQTT_SETTLE_DELAY));
 
     let (mqtt_client, mut eventloop) = AsyncClient::new(mqttoptions, 10);
 
@@ -103,14 +105,14 @@ async fn main() {
         }
     });
 
-    time::sleep(Duration::from_secs(5)).await;
+    time::sleep(Duration::from_secs(MQTT_SETTLE_DELAY)).await;
 
     let discovery_payload = get_ha_device_discovery_payload(&config.leverancier);
     let json_payload = serde_json::to_string(&discovery_payload.payload).unwrap();
 
     while error_state.load(Ordering::Relaxed) {
         println!("Cannot send discovery payload because of MQTT error");
-        time::sleep(Duration::from_secs(5)).await;
+        time::sleep(Duration::from_secs(MQTT_SETTLE_DELAY)).await;
     }
 
     print!("Sending discovery payload:");
@@ -126,7 +128,7 @@ async fn main() {
         .unwrap();
 
     // Wait after publishing discovery data before continuing with sending prices.
-    time::sleep(Duration::from_secs(5)).await;
+    time::sleep(Duration::from_secs(MQTT_SETTLE_DELAY)).await;
 
     let mut last_data_fetched = chrono::Utc::now().with_timezone(&config.timezone);
 
@@ -140,7 +142,7 @@ async fn main() {
     loop {
         while error_state.load(Ordering::Relaxed) {
             println!("Cannot publish price data because of MQTT error");
-            time::sleep(Duration::from_secs(5)).await;
+            time::sleep(Duration::from_secs(MQTT_SETTLE_DELAY)).await;
         }
 
         let now = chrono::Utc::now().with_timezone(&config.timezone);
