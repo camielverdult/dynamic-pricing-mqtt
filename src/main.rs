@@ -4,6 +4,8 @@ use chrono::{DateTime, Datelike, Timelike};
 use chrono_tz::Tz;
 use reqwest;
 use rumqttc::{AsyncClient, MqttOptions, QoS};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use tokio;
 use tokio::time;
@@ -84,20 +86,33 @@ async fn main() {
 
     let (mqtt_client, mut eventloop) = AsyncClient::new(mqttoptions, 10);
 
+    let error_state = Arc::new(AtomicBool::new(false));
+    let error_state_clone = Arc::clone(&error_state);
+
     // Spawn a background task to constantly poll the event loop
     tokio::spawn(async move {
         loop {
             // This actually drives the connection, sends packets, and receives ACKs
             if let Err(e) = eventloop.poll().await {
+                error_state_clone.store(true, Ordering::Relaxed);
                 println!("MQTT connection error: {:?}", e);
                 // Backoff a bit before retrying the poll on error
                 time::sleep(Duration::from_secs(1)).await;
+            } else {
+                // If poll succeeds, clear the error flag
+                error_state_clone.store(false, Ordering::Relaxed);
             }
         }
     });
 
+    time::sleep(Duration::from_secs(5)).await;
+
     let discovery_payload = get_ha_device_discovery_payload(&config.leverancier);
     let json_payload = serde_json::to_string(&discovery_payload.payload).unwrap();
+
+    if error_state.load(Ordering::Relaxed) {
+        panic!("Cannot send discovery payload because of MQTT error");
+    }
 
     print!("Sending discovery payload:");
     println!("{:#?}", discovery_payload);
@@ -124,6 +139,10 @@ async fn main() {
     let price_topic = format!("{}/now", config::TOPIC);
 
     loop {
+        if error_state.load(Ordering::Relaxed) {
+            panic!("Cannot publish price data because of MQTT error");
+        }
+
         let now = chrono::Utc::now().with_timezone(&config.timezone);
 
         if last_data_fetched.day() != now.day() {
