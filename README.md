@@ -20,14 +20,47 @@ Starting with config: Config {
     username: "",
     password: "",
     leverancier: Zonneplan,
-    topic: "dynamic_energy_price",
 }
-17:39 = €0.13069
-Sleeping 25310 ms
-17:40 = €0.13069
-Sleeping 59999 ms
+Sending discovery payload:HaDiscoveryConfig {
+    topic: "homeassistant/device/2/config",
+    payload: HaDiscoveryPayload {
+        dev: HaDevice {
+            ids: "dynamic_energy_price_01",
+            name: "Dynamic Energy Pricing",
+            mf: "Camiel",
+            mdl: "MQTT Bridge",
+            sw: "1.0",
+            sn: "dyn_price_01",
+            hw: "1.0",
+        },
+        o: HaOrigin {
+            name: "dynamic-pricing-mqtt",
+            sw: "1.0",
+            url: "https://github.com/camielverdult/dynamic-pricing-mqtt",
+        },
+        cmps: {
+            "dynamic_energy_price": HaComponent {
+                p: "sensor",
+                name: "Current Energy Price",
+                device_class: "monetary",
+                unit_of_measurement: "EUR",
+                value_template: "{{ value_json.price }}",
+                unique_id: "energy_price_now_01",
+                suggested_display_precision: 5,
+            },
+        },
+        state_topic: "dynamic_energy_price/now",
+        qos: 1,
+    },
+}
+15:14 = €0.0523
+Sending payload "{\"price\": 0.0523}"
+Sleeping 8410 ms
+15:15 = €0.064399995
+Sending payload "{\"price\": 0.064399995}"
+Sleeping 54996 ms
 ```
 
 TODO:
-- [ ] Integration with home assistant (https://www.home-assistant.io/integrations/mqtt/)
-- [ ] Make a docker image for easy deployment
+- [x] Integration with home assistant (https://www.home-assistant.io/integrations/mqtt/)
+- [x] Make a docker image for easy deployment
