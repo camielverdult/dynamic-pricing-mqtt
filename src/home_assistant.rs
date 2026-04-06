@@ -24,10 +24,12 @@ pub struct HaOrigin {
 #[derive(Serialize, Debug)]
 pub struct HaComponent {
     pub p: String,
+    name: String,
     pub device_class: String,
     pub unit_of_measurement: String,
     pub value_template: String,
     pub unique_id: String,
+    pub suggested_display_precision: u8,
 }
 
 #[derive(Serialize, Debug)]
@@ -65,10 +67,12 @@ pub fn get_ha_device_discovery_payload(leverancier: &Leverancier) -> HaDiscovery
         TOPIC.to_string(),
         HaComponent {
             p: "sensor".to_string(),
+            name: "Current Energy Price".to_string(),
             device_class: "monetary".to_string(),
             unit_of_measurement: "EUR".to_string(),
             value_template: "{{ value_json.price }}".to_string(),
             unique_id: "energy_price_now_01".to_string(),
+            suggested_display_precision: 5,
         },
     );
 
