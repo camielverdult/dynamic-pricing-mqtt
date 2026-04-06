@@ -149,8 +149,12 @@ async fn main() {
 
         println!("{}:{} = €{}", hour_str, minute_str, price_now);
 
+        let price_payload = format!(r#"{{"price": {}}}"#, price_now);
+
+        println!("Sending payload {:#?}", price_payload);
+
         mqtt_client
-            .publish(&price_topic, QoS::AtLeastOnce, false, price_now.to_string())
+            .publish(&price_topic, QoS::AtLeastOnce, false, price_payload)
             .await
             .unwrap();
 
