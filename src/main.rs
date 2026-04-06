@@ -9,55 +9,10 @@ use tokio;
 use tokio::time;
 
 use dynamic_pricing_mqtt::{
-    Leverancier,
-    config::{Config, TOPIC},
+    Leverancier, config,
+    home_assistant::get_ha_device_discovery_payload,
     pricing_data::{PricingData, PricingDataResponse},
 };
-
-fn get_config() -> Config {
-    let tz_str = std::env::var("TIMEZONE").unwrap_or_else(|_| "Europe/Amsterdam".to_string());
-
-    let leverancier_str = std::env::var("LEVERANCIER").unwrap_or_else(|_| "Generic".to_string());
-
-    let leverancier = match leverancier_str.as_str() {
-        "Generic" => Leverancier::Generic,
-        "All_in_power" => Leverancier::All_in_power,
-        "ANWB_Energie" => Leverancier::ANWB_Energie,
-        "BudgetEnergie" => Leverancier::BudgetEnergie,
-        "CoolblueEnergie" => Leverancier::CoolblueEnergie,
-        "DeltaEnergie" => Leverancier::DeltaEnergie,
-        "easyEnergy" => Leverancier::easyEnergy,
-        "Eneco" => Leverancier::Eneco,
-        "EnergieVanOns" => Leverancier::EnergieVanOns,
-        "Energiedirect" => Leverancier::Energiedirect,
-        "Energiek" => Leverancier::Energiek,
-        "EnergyZero" => Leverancier::EnergyZero,
-        "Engie" => Leverancier::Engie,
-        "Essent" => Leverancier::Essent,
-        "FrankEnergie" => Leverancier::FrankEnergie,
-        "GroeneStroomLokaal" => Leverancier::GroeneStroomLokaal,
-        "NextEnergy" => Leverancier::NextEnergy,
-        "Oxxio" => Leverancier::Oxxio,
-        "Tibber" => Leverancier::Tibber,
-        "Vandebron" => Leverancier::Vandebron,
-        "Vattenfall" => Leverancier::Vattenfall,
-        "Vrijopnaam" => Leverancier::Vrijopnaam,
-        "Zonneplan" => Leverancier::Zonneplan,
-        _ => panic!("Invalid LEVERANCIER value: {}", leverancier_str),
-    };
-
-    Config {
-        timezone: tz_str.parse().unwrap_or(chrono_tz::Europe::Amsterdam),
-        host: std::env::var("MQTT_HOST").unwrap_or_else(|_| "0.0.0.0".to_string()),
-        port: std::env::var("MQTT_PORT")
-            .unwrap_or_else(|_| 1883.to_string())
-            .parse::<u16>()
-            .expect("MQTT_PORT must be a valid unsigned 16-bit integer"),
-        username: std::env::var("MQTT_USERNAME").unwrap_or_else(|_| "".to_string()),
-        password: std::env::var("MQTT_PASSWORD").unwrap_or_else(|_| "".to_string()),
-        leverancier: leverancier,
-    }
-}
 
 async fn get_data(
     client: &reqwest::Client,
@@ -114,7 +69,7 @@ fn get_price_at_time(prices: &PricingDataResponse, time: &DateTime<Tz>) -> Optio
 
 #[tokio::main]
 async fn main() {
-    let config = get_config();
+    let config = config::get_config();
 
     println!("Starting with config: {:#?}", config);
 
@@ -141,12 +96,29 @@ async fn main() {
         }
     });
 
+    let discovery_payload = get_ha_device_discovery_payload(&config.leverancier);
+    let json_payload = serde_json::to_string(&discovery_payload.payload).unwrap();
+
+    print!("Sending discovery payload:");
+    println!("{:#?}", discovery_payload);
+    mqtt_client
+        .publish(
+            discovery_payload.topic,
+            QoS::AtLeastOnce,
+            true,
+            json_payload,
+        )
+        .await
+        .unwrap();
+
     let last_data_fetched = chrono::Utc::now().with_timezone(&config.timezone);
 
     // initialise data without any value, we will fetch it in the loop
     let mut data = get_data(&req_client, &last_data_fetched, &config.leverancier)
         .await
         .unwrap();
+
+    let price_topic = format!("{}/now", config::TOPIC);
 
     loop {
         let now = chrono::Utc::now().with_timezone(&config.timezone);
@@ -178,12 +150,7 @@ async fn main() {
         println!("{}:{} = €{}", hour_str, minute_str, price_now);
 
         mqtt_client
-            .publish(
-                format!("{}/now", TOPIC),
-                QoS::AtLeastOnce,
-                false,
-                price_now.to_string(),
-            )
+            .publish(&price_topic, QoS::AtLeastOnce, false, price_now.to_string())
             .await
             .unwrap();
 

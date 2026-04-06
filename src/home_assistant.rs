@@ -45,13 +45,13 @@ pub struct HaDiscoveryConfig {
     pub payload: HaDiscoveryPayload,
 }
 
-pub fn get_ha_device_discovery_payload(leverancier: Leverancier) -> HaDiscoveryConfig {
+pub fn get_ha_device_discovery_payload(leverancier: &Leverancier) -> HaDiscoveryConfig {
     // https://www.home-assistant.io/integrations/mqtt/#discovery-topic
     // The discovery topic needs to follow a specific format:
     // <discovery_prefix>/<component>/[<node_id>/]<object_id>/config
     let discovery_prefix = "homeassistant";
     let component = "device";
-    let object_id = leverancier as u32;
+    let object_id = *leverancier as u32;
 
     let topic = format!("{discovery_prefix}/{component}/{object_id}/config");
 
