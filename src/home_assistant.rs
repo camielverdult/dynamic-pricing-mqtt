@@ -85,11 +85,11 @@ pub fn get_ha_device_discovery_payload(leverancier: &Leverancier) -> HaDiscovery
         o: HaOrigin {
             name: "dynamic-pricing-mqtt".to_string(),
             sw: "1.0".to_string(),
-            url: "https://github.com/your-username/dynamic-pricing-mqtt".to_string(),
+            url: "https://github.com/camielverdult/dynamic-pricing-mqtt".to_string(),
         },
         cmps: components,
-        state_topic: state_topic.to_string(), // Make sure this matches your script!
-        qos: 1,                               // Usually QoS 1 is preferred for discovery
+        state_topic: state_topic.to_string(),
+        qos: 1,
     };
 
     HaDiscoveryConfig {
