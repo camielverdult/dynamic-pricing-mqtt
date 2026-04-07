@@ -6,12 +6,14 @@ WORKDIR /usr/src/app
 # Install dependencies required to compile some Rust crates (like OpenSSL for reqwest)
 RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
 
-# 1. Copy over your manifests
+# Copy over your manifests
 COPY Cargo.toml Cargo.lock ./
 
-# 2. Create a dummy src/main.rs to cache your dependencies!
+# Create a dummy src/main.rs to cache dependencies
 # This prevents Docker from re-downloading all crates every time you change a line of code.
-RUN mkdir src && echo "fn main() {}" > src/main.rs
+RUN mkdir src && echo "fn main() {}" > src/main.rs && echo "" > src/lib.rs
+
+
 RUN cargo build --release
 RUN rm -rf src
 
