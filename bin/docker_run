@@ -1,0 +1,7 @@
+#!/bin/sh
+
+docker run -d --rm \
+     --name dynamic-pricing \
+     -e MQTT_HOST="127.0.0.1" \
+     -e LEVERANCIER="Zonneplan" \
+     dynamic-pricing-mqtt
