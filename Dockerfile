@@ -1,5 +1,5 @@
 # Stage 1: Build environment
-FROM rust:1-slim-bookworm AS builder
+FROM rust:1.94.1-slim-bookworm AS builder
 
 WORKDIR /usr/src/app
 
@@ -25,6 +25,7 @@ RUN touch src/main.rs && cargo build --release
 
 
 # Stage 2: Production environment
+# TODO: Pin version?
 FROM debian:bookworm-slim
 
 WORKDIR /app
