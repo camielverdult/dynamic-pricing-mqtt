@@ -28,6 +28,8 @@ RUN touch src/main.rs src/lib.rs && cargo build --release
 # TODO: Pin version?
 FROM debian:bookworm-slim
 
+RUN useradd --create-home appuser
+
 WORKDIR /app
 
 # Install CA certificates so reqwest can successfully verify HTTPS connections
@@ -35,6 +37,8 @@ RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/
 
 # Copy the compiled binary from the builder stage
 COPY --from=builder /usr/src/app/target/release/dynamic-pricing-mqtt /usr/local/bin/dynamic-pricing-mqtt
+
+USER appuser
 
 # Set default environment variables (these can be overridden when running the container)
 ENV TIMEZONE="Europe/Amsterdam"
