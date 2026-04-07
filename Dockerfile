@@ -33,7 +33,7 @@ RUN useradd --create-home appuser
 WORKDIR /app
 
 # Install CA certificates so reqwest can successfully verify HTTPS connections
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/*
 
 # Copy the compiled binary from the builder stage
 COPY --from=builder /usr/src/app/target/release/dynamic-pricing-mqtt /usr/local/bin/dynamic-pricing-mqtt
@@ -47,6 +47,13 @@ ENV MQTT_HOST="127.0.0.1"
 ENV MQTT_PORT="1883"
 ENV MQTT_USERNAME=""
 ENV MQTT_PASSWORD=""
+
+# TODO:
+# EXPOSE 8080
+
+# HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+#   CMD curl -f http://localhost:8080/health || exit 1
+
 
 # Run the binary
 CMD ["dynamic-pricing-mqtt"]

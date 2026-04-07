@@ -87,6 +87,18 @@ async fn main() {
     let error_state = Arc::new(AtomicBool::new(false));
     let error_state_clone = Arc::clone(&error_state);
 
+    // TODO
+    // let health_state = Arc::new(Mutex::new(HealthState {
+    //     price: None,
+    //     last_updated: None,
+    // }));
+
+    // // Spawn health endpoint
+    // tokio::spawn(serve_health(
+    //     Arc::clone(&health_state),
+    //     Arc::clone(&error_state),
+    // ));
+
     // Spawn a background task to constantly poll the event loop
     tokio::spawn(async move {
         loop {
@@ -153,6 +165,13 @@ async fn main() {
         }
 
         let price_now = get_price_at_time(&data.pricings, &now).unwrap();
+
+        // TODO: Update health state
+        // {
+        //     let mut state = health_state.lock().unwrap();
+        //     state.price = Some(price_now);
+        //     state.last_updated = Some(now.format("%Y-%m-%dT%H:%M:%S%:z").to_string());
+        // }
 
         println!("{:02}:{:02} = €{}", now.hour(), now.minute(), price_now);
 
