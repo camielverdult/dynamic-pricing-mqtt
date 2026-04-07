@@ -48,7 +48,7 @@ pub fn get_config() -> Config {
 
     Config {
         timezone: tz_str.parse().unwrap_or(chrono_tz::Europe::Amsterdam),
-        host: std::env::var("MQTT_HOST").unwrap_or_else(|_| "0.0.0.0".to_string()),
+        host: std::env::var("MQTT_HOST").unwrap_or_else(|_| "127.0.0.1".to_string()),
         port: std::env::var("MQTT_PORT")
             .unwrap_or_else(|_| 1883.to_string())
             .parse::<u16>()

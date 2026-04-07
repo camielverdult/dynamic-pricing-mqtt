@@ -72,14 +72,14 @@ To run the image:
 ```sh
 docker run -d \
      --name dynamic-pricing \
-     -e MQTT_HOST="0.0.0.0" \
+     -e MQTT_HOST="127.0.0.1" \
      -e LEVERANCIER="Zonneplan" \
      dynamic-pricing-mqtt
 ```
 
 There are several environment variables you can set:
 
-`MQTT_HOST`: "0.0.0.0" by default
+`MQTT_HOST`: "127.0.0.1" by default
 `MQTT_PORT`: 1883 by default
 `MQTT_USERNAME`: empty string ("") by default
 `MQTT_PASSWORD`: empty string ("") by default

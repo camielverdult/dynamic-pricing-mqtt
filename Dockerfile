@@ -36,7 +36,7 @@ COPY --from=builder /usr/src/app/target/release/dynamic-pricing-mqtt /usr/local/
 # Set default environment variables (these can be overridden when running the container)
 ENV TIMEZONE="Europe/Amsterdam"
 ENV LEVERANCIER="Generic"
-ENV MQTT_HOST="0.0.0.0"
+ENV MQTT_HOST="127.0.0.1"
 ENV MQTT_PORT="1883"
 ENV MQTT_USERNAME=""
 ENV MQTT_PASSWORD=""
