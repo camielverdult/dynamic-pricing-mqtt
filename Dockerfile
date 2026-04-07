@@ -21,7 +21,7 @@ RUN rm -rf src
 COPY src ./src
 
 # 4. Update the timestamp on main.rs to force Cargo to rebuild it, then compile the release binary
-RUN touch src/main.rs && cargo build --release
+RUN touch src/main.rs src/lib.rs && cargo build --release
 
 
 # Stage 2: Production environment
