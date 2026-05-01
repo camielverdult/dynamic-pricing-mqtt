@@ -69,7 +69,7 @@ pub fn get_ha_device_discovery_payload(leverancier: &Leverancier) -> HaDiscovery
             p: "sensor".to_string(),
             name: "Current Energy Price".to_string(),
             device_class: "monetary".to_string(),
-            unit_of_measurement: "EUR".to_string(),
+            unit_of_measurement: "EUR/kWh".to_string(),
             value_template: "{{ value_json.price }}".to_string(),
             unique_id: "energy_price_now_01".to_string(),
             suggested_display_precision: 5,
